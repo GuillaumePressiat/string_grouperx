@@ -17,8 +17,8 @@ with a Rust vectorization core.
 import polars as pl
 from string_grouperx import match_strings, group_similar_strings
 
-s = pl.Series('company_name', ['Hôpital de Brest', 'Hopital de Brest',
-                               'CHU Brest', 'Clinique Kerlédé'])
+s = pl.Series('company_name', ['Apple Inc.', 'Apple Incorporated',
+                               'Microsoft Corp', 'Microsoft Corporation'])
 
 match_strings(s, min_similarity=0.6)          # -> pl.DataFrame
 group_similar_strings(s, min_similarity=0.6)  # -> pl.DataFrame (group representatives)

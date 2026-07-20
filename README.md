@@ -25,7 +25,7 @@ group_similar_strings(s, min_similarity=0.6)  # -> pl.DataFrame (group represent
 ```
 
 Output follows input: pass a `pl.Series` -> Polars output; a `pd.Series` ->
-pandas output; a `pyarrow.ChunkedArray` -> PyArrow output — any eager backend
+pandas output; a `pyarrow.ChunkedArray` -> PyArrow output, any eager backend
 supported by [narwhals](https://narwhals-dev.github.io/narwhals/)
 (cuDF, Modin, ...) works identically.
 
@@ -40,12 +40,7 @@ supported by [narwhals](https://narwhals-dev.github.io/narwhals/)
 
 No pandas dependency. The Rust core handles custom cleanup regexes natively
 (crate `regex`, cost ~identical to the default: ~195-225 ms vs 193 ms on 40k
-strings; the default regex uses an optimized character filter). Only
-Python-specific syntax — lookaround `(?<=...)`, backreferences `\1` — is not
-supported by the Rust engine: in that case `vectorizer='auto'` falls back to
-scikit-learn (optional extra `[sklearn]`) and `vectorizer='rust'` raises an
-explicit `ValueError`. Rust/sklearn parity is verified across several regexes
-(character classes, negations, `\d`) in the test suite.
+strings).
 
 ## API
 
@@ -66,19 +61,12 @@ Options (see `Config`): `ngram_size`, `regex`, `ignore_case`,
 
 The pipeline replicates string_grouper 0.7.x (branch `add_sp_matmul_rs`):
 n-gram analyzer (lowercase, NFKD->ASCII, cleanup), TfidfVectorizer (smooth idf,
-L2 norm — max observed deviation 5.6e-17 on an accented corpus), self-join
-symmetrization, representative schemes and tie-breaking rules.
+L2 norm), self-join symmetrization, representative schemes and tie-breaking rules.
 
 **Parity guarantee** (validated on SEC EDGAR, 663k company names, the reference
 benchmark of string_grouper): with a non-saturated `max_n_matches`, the same set
 of pairs (identical indices and strings) and similarities equal up to
-floating-point summation noise (max observed 1.2e-15). When the `max_n_matches`
-cutoff is saturated (dense clusters of near-duplicates), tie-breaking at the ULP
-level may retain different but equivalent pairs — with the same number of matches
-per string overall. Therefore, do **not** compare two implementations with
-`DataFrame.equals` (bitwise): sort on (left_index, right_index) and tolerate
-~1e-12 on similarity. The included parity test applies this methodology and
-activates automatically if string_grouper is installed.
+floating-point summation noise (max observed 1.2e-15). 
 
 Not ported (intentional scope): `include_zeroes` (only relevant when
 `min_similarity <= 0`), `replace_na`, the `sparse_dot_topn`/`n_blocks` backend,
@@ -124,6 +112,3 @@ pip install 'string-grouperx[test]' && pytest tests/
 Toolchain note: `rayon` is pinned to 1.8.1 to build with rustc as old as 1.75
 (Ubuntu 24); this pin can be lifted with a recent toolchain.
 
-## License
-
-MIT — derived from string_grouper (Chris van den Berg and contributors).

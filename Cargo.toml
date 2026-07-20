@@ -1,0 +1,20 @@
+[package]
+name = "string_grouperx"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+name = "_ngram_tfidf"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+rayon = "=1.8.1"
+rustc-hash = "1.1"
+unicode-normalization = "0.1"
+regex = "1.10"
+numpy = "0.20"
+
+[profile.release]
+lto = true
+codegen-units = 1
